@@ -1,5 +1,6 @@
 from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
+from multiselectfield import MultiSelectField
 
 
 class Age(models.Model):
@@ -54,14 +55,7 @@ class Brand(models.Model):
         verbose_name_plural = 'Бренды'
 
 
-class Count(models.Model):
-    count = models.PositiveSmallIntegerField(default=0)
-
-    def __str__(self):
-        return self.count
-
-
-class Size(MPTTModel):
+class Size(models.Model):
     SIZE = (
         ("Oversize", (
             ("S", 'S'),
@@ -77,25 +71,46 @@ class Size(MPTTModel):
         ("M", "M"),
         ("L", "L"),
     )
-    size = models.CharField(max_length=30, choices=SIZE)
-
-    count = TreeForeignKey('Count', on_delete=models.PROTECT, related_name='children', db_index=True)
+    size = MultiSelectField(max_length=30, choices=SIZE)
 
     def __str__(self):
         return self.size
 
 
-class Some(models.Model):
-    CH = (
-        ('Int', models.PositiveIntegerField()),
-    )
-    s = models.PositiveIntegerField(choices=CH)
+class Product(models.Model):
+    title = models.CharField(max_length=255, unique=True, verbose_name='Название продукта')
+    description = models.TextField(max_length=5000, verbose_name='Описание продукта')
+    size = models.ManyToManyField(Size, related_name='product_size')
+    price = models.PositiveIntegerField(default=0)
+    discount = models.PositiveIntegerField(default=0)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.s
+        return self.title
 
-
-
-# class Product(MPTTModel):
+# С мультивыбором
+# class Product(models.Model):
+#     SIZE = (
+#         ("Oversize", (
+#             ("S", 'S'),
+#             ("M", "M"),
+#             ("L", "L"),
+#             ("XS", "XS"),
+#             ("XM", "XM"),
+#             ("XL", "XL"),
+#             ("X2L", "X2L"),
+#             ("X3L", 'X3L'),
+#         )),
+#         ("S", 'S'),
+#         ("M", "M"),
+#         ("L", "L"),
+#     )
+#     size = MultiSelectField(max_length=30, choices=SIZE)
 #     title = models.CharField(max_length=255, unique=True, verbose_name='Название продукта')
 #     description = models.TextField(max_length=5000, verbose_name='Описание продукта')
+#     price = models.PositiveIntegerField(default=0)
+#     discount = models.PositiveIntegerField(default=0)
+#     category = models.ForeignKey(Category, on_delete=models.CASCADE)
+#
+#     def __str__(self):
+#         return self.title

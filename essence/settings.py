@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
+
 import psycopg2
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,11 +27,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'apps.auth_app.apps.AuthAppConfig',
-    'mptt',
     'apps.blog.apps.BlogConfig',
-    'django_mptt_admin',
     'apps.main.apps.MainConfig',
     'apps.products.apps.ProductsConfig',
+    'django_mptt_admin',
+    'mptt',
+    'multiselectfield',
 ]
 
 MIDDLEWARE = [
