@@ -1,2 +1,2 @@
 # E-com-shop
- E Com Shop essence(templates)
+ <h1>Django 4.x Python 3.11.x</h1>

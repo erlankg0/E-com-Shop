@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-
+import psycopg2
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -29,7 +29,7 @@ INSTALLED_APPS = [
     'apps.blog.apps.BlogConfig',
     'django_mptt_admin',
     'apps.main.apps.MainConfig',
-    'apps.products.apps.ProductsConfig'
+    'apps.products.apps.ProductsConfig',
 ]
 
 MIDDLEWARE = [
@@ -69,8 +69,13 @@ WSGI_APPLICATION = 'essence.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite4',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'essence',
+        'USER': 'postgres',
+        'PASSWORD': '123321',
+        'HOST': 'localhost',
+        'PORT': '5432'
+
     }
 }
 
