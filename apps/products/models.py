@@ -1,6 +1,8 @@
 from django.db import models
+from django.urls import reverse
 from mptt.models import MPTTModel, TreeForeignKey
-from multiselectfield import MultiSelectField
+
+from apps.products.utils import get_sizes
 
 
 class Age(models.Model):
@@ -47,70 +49,93 @@ class Brand(models.Model):
     def __str__(self):
         return self.title
 
-    class MPTTMeta:
-        order_insertion_by = ['title']
-
     class Meta:
         verbose_name = 'Бренд'
         verbose_name_plural = 'Бренды'
 
 
 class Size(models.Model):
-    SIZE = (
-        ("Oversize", (
-            ("S", 'S'),
-            ("M", "M"),
-            ("L", "L"),
-            ("XS", "XS"),
-            ("XM", "XM"),
-            ("XL", "XL"),
-            ("X2L", "X2L"),
-            ("X3L", 'X3L'),
-        )),
-        ("S", 'S'),
-        ("M", "M"),
-        ("L", "L"),
+    size = models.CharField(
+        max_length=10,
+        choices=get_sizes()
     )
-    size = MultiSelectField(max_length=30, choices=SIZE)
+    count = models.OneToOneField(
+        'Quantity',
+        related_name='quantity_size',
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        unique=True,
+    )
 
     def __str__(self):
         return self.size
 
 
-class Product(models.Model):
-    title = models.CharField(max_length=255, unique=True, verbose_name='Название продукта')
-    description = models.TextField(max_length=5000, verbose_name='Описание продукта')
-    size = models.ManyToManyField(Size, related_name='product_size')
-    price = models.PositiveIntegerField(default=0)
-    discount = models.PositiveIntegerField(default=0)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+class Quantity(models.Model):
+    quantity = models.PositiveIntegerField()
+
+    def __int__(self):
+        return self.quantity
 
     def __str__(self):
-        return self.title
+        return str(self.quantity)
 
-# С мультивыбором
-# class Product(models.Model):
-#     SIZE = (
-#         ("Oversize", (
-#             ("S", 'S'),
-#             ("M", "M"),
-#             ("L", "L"),
-#             ("XS", "XS"),
-#             ("XM", "XM"),
-#             ("XL", "XL"),
-#             ("X2L", "X2L"),
-#             ("X3L", 'X3L'),
-#         )),
-#         ("S", 'S'),
-#         ("M", "M"),
-#         ("L", "L"),
-#     )
-#     size = MultiSelectField(max_length=30, choices=SIZE)
-#     title = models.CharField(max_length=255, unique=True, verbose_name='Название продукта')
-#     description = models.TextField(max_length=5000, verbose_name='Описание продукта')
-#     price = models.PositiveIntegerField(default=0)
-#     discount = models.PositiveIntegerField(default=0)
-#     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-#
-#     def __str__(self):
-#         return self.title
+
+class Product(models.Model):
+    title = models.CharField(
+        max_length=150,
+        unique=True,
+        verbose_name='Название продукта'
+    )
+    description = models.TextField(
+        max_length=2000,
+        verbose_name='Описание продукта'
+    )
+    article = models.CharField(
+        max_length=64,
+        blank=False,
+        unique=True,
+        verbose_name="Артикул",
+    )
+    brand = models.ForeignKey(
+        Brand,
+        on_delete=models.CASCADE,
+        verbose_name='Бренд',
+        related_name='product_brand'
+    )
+    category = models.ManyToManyField(
+        Category,
+        verbose_name='Категория'
+    )
+    age_group = models.ManyToManyField(
+        Age,
+        verbose_name='Возрастная группа'
+    )
+    price = models.FloatField(
+        verbose_name='Цена продукта',
+        default=0.0
+    )
+    discount = models.BooleanField(
+        verbose_name='Скидка',
+        default=False,
+    )
+    discount_price = models.FloatField(
+        default=0.00
+    )
+    size = models.ManyToManyField(
+        Size,
+        verbose_name='Размер',
+    )
+    slug = models.SlugField()
+
+    def get_absolute_url(self):
+        return reverse('product_detail', kwargs={"slug": self.slug})
+
+    def __str__(self):
+        return f"{self.title} - {self.brand}"
+
+    def save(self, *args, **kwargs):
+        if self.discount:
+            self.price = self.price - self.discount_price
+        return super(Product, self).save(*args, **kwargs)
