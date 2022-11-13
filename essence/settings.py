@@ -73,7 +73,7 @@ WSGI_APPLICATION = 'essence.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'es',
+        'NAME': 'some',
         'USER': 'postgres',
         'PASSWORD': '123321',
         'HOST': 'localhost',

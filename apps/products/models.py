@@ -1,7 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from mptt.models import MPTTModel, TreeForeignKey
-
+from apps.products.utils import brand_name_directory_path, product_name_directory_path
 from apps.products.utils import get_sizes
 
 
@@ -10,9 +10,17 @@ class Age(models.Model):
         ("Adult", 'Adult'),
         ("Kids", 'Kids'),
     )
-    title = models.CharField(max_length=20, unique=True, verbose_name='Возвраст',
-                             help_text='Для взрослых \n Для детей ')
-    slug = models.SlugField(unique=True, verbose_name='URL', help_text='Уникальное URL')
+    title = models.CharField(
+        max_length=20,
+        unique=True,
+        verbose_name='Возвраст',
+        help_text='Для взрослых \n Для детей'
+    )
+    slug = models.SlugField(
+        unique=True,
+        verbose_name='URL',
+        help_text='Уникальное URL'
+    )
 
     def __str__(self):
         return self.title
@@ -26,10 +34,22 @@ class Age(models.Model):
 
 
 class Category(MPTTModel):
-    title = models.CharField(max_length=50, unique=True, verbose_name='Название категории')
-    parent = TreeForeignKey('self', on_delete=models.PROTECT, related_name='children', blank=True, null=True,
-                            db_index=True, verbose_name='Подкатегория')
-    slug = models.SlugField(unique=True)
+    title = models.CharField(
+        max_length=50,
+        unique=True,
+        verbose_name='Название категории'
+    )
+    parent = TreeForeignKey(
+        'self',
+        on_delete=models.PROTECT,
+        related_name='children',
+        blank=True, null=True,
+        db_index=True,
+        verbose_name='Подкатегория'
+    )
+    slug = models.SlugField(
+        unique=True
+    )
 
     def __str__(self):
         return self.title
@@ -43,8 +63,18 @@ class Category(MPTTModel):
 
 
 class Brand(models.Model):
-    title = models.CharField(max_length=100, unique=True, verbose_name='Название бренда')
-    slug = models.SlugField(unique=True)
+    title = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name='Название бренда'
+    )
+    slug = models.SlugField(
+        unique=True
+    )
+    image = models.ImageField(
+        upload_to=brand_name_directory_path,
+        verbose_name='Изображения / Логотип бренда'
+    )
 
     def __str__(self):
         return self.title
@@ -83,6 +113,10 @@ class Quantity(models.Model):
 
 
 class Product(models.Model):
+    image = models.ManyToManyField(
+        'Image',
+        verbose_name='Изображение продукта',
+    )
     title = models.CharField(
         max_length=150,
         unique=True,
@@ -127,6 +161,19 @@ class Product(models.Model):
         Size,
         verbose_name='Размер',
     )
+    sold = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Проданно',
+    )
+    view = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Просмотры',
+    )
+    
+    publication_date = models.DateField(
+        auto_created=True,
+        verbose_name='Дата публикации',
+    )
     slug = models.SlugField()
 
     def get_absolute_url(self):
@@ -137,5 +184,15 @@ class Product(models.Model):
 
     def save(self, *args, **kwargs):
         if self.discount:
-            self.price = self.price - self.discount_price
+            self.discount_price = self.price - self.discount_price
         return super(Product, self).save(*args, **kwargs)
+
+
+class Image(models.Model):
+    image = models.ImageField(
+        upload_to=product_name_directory_path,
+        verbose_name='Логотип'
+    )
+
+    def __str__(self):
+        return self.image.name

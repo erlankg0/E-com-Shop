@@ -20,7 +20,7 @@
             </a>
             {% if product.discount %}
                 <p class="product-price"><span class="old-price">${{ product.price }}</span>
-                    ${{ product.price|floatformat:"-3"}}
+                    ${{ product.discount_price }}
                 </p>
             {% else %}
                 <p class="product-price">({{ product.price }} - {{ product.discount_price }})</p>
